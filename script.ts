@@ -35,14 +35,12 @@ class Cart {
     alert("Carrinho limpo com sucesso!");
   }
 
-
   applyCoupon(code: string) {
     if (this.coupons.includes(code)) {
       const discountEl = document.getElementById("discount")!;
       discountEl.textContent = "R$ -10,00";
     } else alert("Cupom inválido!");
   }
-
 
   checkout() {
     if (this.items.length === 0) {
@@ -55,7 +53,6 @@ class Cart {
     this.clear();
     this.renderHistory();
   }
-
 
   calculateShipping(subtotal: number): number {
     if (subtotal === 0) return 0;
@@ -77,7 +74,7 @@ class Cart {
           <td>${item.quantity}</td>
           <td>R$ ${item.price.toFixed(2)}</td>
           <td>R$ ${total.toFixed(2)}</td>
-          <td><button class="remove-btn">Remover</button></td>
+          <td><button class="remove-btn" data-id="${item.id}">Remover</button></td>
         </tr>
       `;
     });
@@ -86,8 +83,11 @@ class Cart {
     document.getElementById("shipping")!.textContent = `R$ ${shipping.toFixed(2)}`;
     document.getElementById("grand")!.textContent = `R$ ${(subtotal + shipping).toFixed(2)}`;
 
-    tbody.querySelectorAll(".remove-btn").forEach((btn, i) => {
-      btn.addEventListener("click", () => this.remove(this.items[i].id));
+    tbody.querySelectorAll(".remove-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const id = parseInt((btn as HTMLButtonElement).dataset.id!);
+        this.remove(id);
+      });
     });
   }
 
@@ -121,15 +121,17 @@ function renderProducts(list: Product[]) {
       <p>R$ ${p.price.toFixed(2)}</p>
       <p>${p.category}</p>
       <input type="number" id="qty-${p.id}" value="1" min="1">
-      <button>Add</button>
+      <button id="add-${p.id}">Add</button>
       <button>Desejar</button>
     `;
     container.appendChild(div);
 
-    const addBtn = div.querySelector("button")!;
+    const addBtn = div.querySelector(`#add-${p.id}`)! as HTMLButtonElement;
     addBtn.addEventListener("click", () => {
       const qty = parseInt((div.querySelector("input") as HTMLInputElement).value);
       carte.add(p, qty);
+      const currentItem = (carte as any)["items"].find((i: CartItem) => i.id === p.id);
+      addBtn.textContent = `Add (${currentItem?.quantity || 0})`;
     });
 
     const wishBtn = div.querySelectorAll("button")[1];
@@ -178,7 +180,7 @@ window.onload = () => {
   if (savedUser) document.getElementById("welcome")!.textContent = `Bem-vindo de volta, ${JSON.parse(savedUser).name}!`;
   const savedHistory = localStorage.getItem("history");
   if (savedHistory) {
-    carte["history"] = JSON.parse(savedHistory);
+    (carte as any)["history"] = JSON.parse(savedHistory);
     carte.renderHistory();
   }
 };
