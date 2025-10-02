@@ -78,14 +78,17 @@ var Cart = /** @class */ (function () {
         this.items.forEach(function (item) {
             var total = item.price * item.quantity;
             subtotal += total;
-            tbody.innerHTML += "\n        <tr>\n          <td>".concat(item.name, "</td>\n          <td>").concat(item.quantity, "</td>\n          <td>R$ ").concat(item.price.toFixed(2), "</td>\n          <td>R$ ").concat(total.toFixed(2), "</td>\n          <td><button class=\"remove-btn\">Remover</button></td>\n        </tr>\n      ");
+            tbody.innerHTML += "\n        <tr>\n          <td>".concat(item.name, "</td>\n          <td>").concat(item.quantity, "</td>\n          <td>R$ ").concat(item.price.toFixed(2), "</td>\n          <td>R$ ").concat(total.toFixed(2), "</td>\n          <td><button class=\"remove-btn\" data-id=\"").concat(item.id, "\">Remover</button></td>\n        </tr>\n      ");
         });
         var shipping = this.calculateShipping(subtotal);
         document.getElementById("subtotal").textContent = "R$ ".concat(subtotal.toFixed(2));
         document.getElementById("shipping").textContent = "R$ ".concat(shipping.toFixed(2));
         document.getElementById("grand").textContent = "R$ ".concat((subtotal + shipping).toFixed(2));
-        tbody.querySelectorAll(".remove-btn").forEach(function (btn, i) {
-            btn.addEventListener("click", function () { return _this.remove(_this.items[i].id); });
+        tbody.querySelectorAll(".remove-btn").forEach(function (btn) {
+            btn.addEventListener("click", function () {
+                var id = parseInt(btn.dataset.id);
+                _this.remove(id);
+            });
         });
     };
     Cart.prototype.renderHistory = function () {
@@ -111,12 +114,14 @@ function renderProducts(list) {
     list.forEach(function (p) {
         var div = document.createElement("div");
         div.className = "product";
-        div.innerHTML = "\n      <h3>".concat(p.name, "</h3>\n      <p>R$ ").concat(p.price.toFixed(2), "</p>\n      <p>").concat(p.category, "</p>\n      <input type=\"number\" id=\"qty-").concat(p.id, "\" value=\"1\" min=\"1\">\n      <button>Add</button>\n      <button>Desejar</button>\n    ");
+        div.innerHTML = "\n      <h3>".concat(p.name, "</h3>\n      <p>R$ ").concat(p.price.toFixed(2), "</p>\n      <p>").concat(p.category, "</p>\n      <input type=\"number\" id=\"qty-").concat(p.id, "\" value=\"1\" min=\"1\">\n      <button id=\"add-").concat(p.id, "\">Add</button>\n      <button>Desejar</button>\n    ");
         container.appendChild(div);
-        var addBtn = div.querySelector("button");
+        var addBtn = div.querySelector("#add-".concat(p.id));
         addBtn.addEventListener("click", function () {
             var qty = parseInt(div.querySelector("input").value);
             carte.add(p, qty);
+            var currentItem = carte["items"].find(function (i) { return i.id === p.id; });
+            addBtn.textContent = "Add (".concat((currentItem === null || currentItem === void 0 ? void 0 : currentItem.quantity) || 0, ")");
         });
         var wishBtn = div.querySelectorAll("button")[1];
         var wishList = document.getElementById("wishlist-items");
